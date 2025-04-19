@@ -18,16 +18,27 @@ def predict_winner(pokemon_df, name1, name2):
     p1 = pokemon_df[pokemon_df["Name"] == name1].iloc[0]
     p2 = pokemon_df[pokemon_df["Name"] == name2].iloc[0]
 
-    # Include Base Stat Total (BST) in features
+    # Calculate Base Stat Totals
     bst1 = p1["HP"] + p1["Attack"] + p1["Defense"] + p1["Sp. Atk"] + p1["Sp. Def"] + p1["Speed"]
     bst2 = p2["HP"] + p2["Attack"] + p2["Defense"] + p2["Sp. Atk"] + p2["Sp. Def"] + p2["Speed"]
 
+    # Full feature list (14 base stats + 6 differential features)
     features = [
+        # Base stats for Pokémon 1 and 2
         p1["HP"], p1["Attack"], p1["Defense"], p1["Sp. Atk"], p1["Sp. Def"], p1["Speed"],
         p2["HP"], p2["Attack"], p2["Defense"], p2["Sp. Atk"], p2["Sp. Def"], p2["Speed"],
-        bst1, bst2
+        bst1, bst2,
+
+        # Differential features
+        p1["HP"] - p2["HP"],
+        p1["Attack"] - p2["Defense"],
+        p1["Sp. Atk"] - p2["Sp. Def"],
+        p1["Sp. Def"] - p2["Sp. Atk"],
+        p1["Speed"] - p2["Speed"],
+        bst1 - bst2
     ]
 
+    # Scale and predict
     X = scaler.transform([features])
     prediction = model.predict(X)[0]
     proba = model.predict_proba(X)[0]

@@ -122,13 +122,13 @@ if st.button("⚔️ Predict Battle Outcome"):
         st.markdown(f"- **{pokemon_1}:** {round(proba[1] * 100, 2)}%")
         st.markdown(f"- **{pokemon_2}:** {round(proba[0] * 100, 2)}%")
 
-        # Log match result
+        # Log match result (fixed Win % columns)
         st.session_state.match_history.append({
             "Pokémon 1": pokemon_1,
             "Pokémon 2": pokemon_2,
             "Predicted Winner": winner,
-            f"{pokemon_1} Win %": round(proba[1] * 100, 2),
-            f"{pokemon_2} Win %": round(proba[0] * 100, 2)
+            "Pokémon 1 Win %": round(proba[1] * 100, 2),
+            "Pokémon 2 Win %": round(proba[0] * 100, 2)
         })
 
 # Match history

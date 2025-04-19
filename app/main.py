@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils import load_pokemon_data, get_pokemon_stats
+from utils import load_pokemon_data, get_pokemon_stats, predict_winner
 
 st.set_page_config(page_title="Pokémon Battle Predictor", layout="wide")
 st.title("⚔️ Competitive Pokémon Battle Predictor")
@@ -23,6 +23,15 @@ with col2:
     st.write("### Stats for Pokémon 2")
     st.dataframe(stats_2)
 
-# Placeholder for prediction button
+# Prediction button
 if st.button("⚔️ Predict Battle Outcome"):
-    st.info("Model not yet trained. Prediction feature coming soon!")
+    if pokemon_1 == pokemon_2:
+        st.warning("Please choose two different Pokémon!")
+    else:
+        prediction, proba = predict_winner(pokemon_df, pokemon_1, pokemon_2)
+        winner = pokemon_1 if prediction == 1 else pokemon_2
+
+        st.success(f"🏆 Predicted Winner: **{winner}**")
+        st.write("### Win Probabilities:")
+        st.markdown(f"- **{pokemon_1}:** {round(proba[1] * 100, 2)}%")
+        st.markdown(f"- **{pokemon_2}:** {round(proba[0] * 100, 2)}%")

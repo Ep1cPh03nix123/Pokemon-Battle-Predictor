@@ -16,6 +16,16 @@ st.sidebar.header("🔍 Filter by Pokémon Type")
 selected_type_1 = st.sidebar.selectbox("Filter Pokémon 1 by type", ["All"] + types)
 selected_type_2 = st.sidebar.selectbox("Filter Pokémon 2 by type", ["All"] + types)
 
+# Show Clear History button in sidebar only after at least one prediction
+if "match_history" not in st.session_state:
+    st.session_state.match_history = []
+
+if st.session_state.match_history:
+    st.sidebar.markdown("---")
+    if st.sidebar.button("🗑️ Clear History"):
+        st.session_state.match_history.clear()
+        st.sidebar.success("Match history cleared!")
+
 # Function to filter by selected type
 def filter_by_type(df, selected_type):
     if selected_type == "All":
@@ -25,7 +35,7 @@ def filter_by_type(df, selected_type):
 filtered_df_1 = filter_by_type(pokemon_df, selected_type_1)
 filtered_df_2 = filter_by_type(pokemon_df, selected_type_2)
 
-# UI columns
+# Columns for Pokémon selection and stats
 col1, col2 = st.columns(2)
 
 with col1:
@@ -52,3 +62,20 @@ if st.button("⚔️ Predict Battle Outcome"):
         st.write("### Win Probabilities:")
         st.markdown(f"- **{pokemon_1}:** {round(proba[1] * 100, 2)}%")
         st.markdown(f"- **{pokemon_2}:** {round(proba[0] * 100, 2)}%")
+
+        # Log match to session history
+        st.session_state.match_history.append({
+            "Pokémon 1": pokemon_1,
+            "Pokémon 2": pokemon_2,
+            "Predicted Winner": winner,
+            f"{pokemon_1} Win %": round(proba[1] * 100, 2),
+            f"{pokemon_2} Win %": round(proba[0] * 100, 2)
+        })
+
+# Display match history with index starting at 1
+if st.session_state.match_history:
+    st.write("## 📋 Match History")
+    history_df = pd.DataFrame(st.session_state.match_history)
+    history_df.index = range(1, len(history_df) + 1)
+    history_df.index.name = "Match #"
+    st.dataframe(history_df)

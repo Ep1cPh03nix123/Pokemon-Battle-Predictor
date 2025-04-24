@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import random
 from utils import load_pokemon_data, get_pokemon_stats, predict_winner, predict_team_battle
 
 st.set_page_config(page_title="Pokémon Battle Predictor", layout="wide")
@@ -128,16 +129,42 @@ st.markdown("---")
 st.header("🧪 Team Battle Predictor (6v6)")
 st.caption("Select up to 6 Pokémon per team. Duplicates allowed.")
 
+# Store team states in session
+if "team1" not in st.session_state:
+    st.session_state.team1 = [pokemon_df["Name"].sample().values[0] for _ in range(6)]
+if "team2" not in st.session_state:
+    st.session_state.team2 = [pokemon_df["Name"].sample().values[0] for _ in range(6)]
+
+# Randomize buttons
+col_random1, col_random2 = st.columns(2)
+with col_random1:
+    if st.button("🎲 Randomize Team 1"):
+        st.session_state.team1 = [pokemon_df["Name"].sample().values[0] for _ in range(6)]
+with col_random2:
+    if st.button("🎲 Randomize Team 2"):
+        st.session_state.team2 = [pokemon_df["Name"].sample().values[0] for _ in range(6)]
+
+# Select boxes for each Pokémon in the teams
 team1 = []
 team2 = []
-
 cols = st.columns(2)
 for i in range(6):
     with cols[0]:
-        poke = st.selectbox(f"Team 1 - Pokémon {i+1}", pokemon_df["Name"].tolist(), key=f"team1_poke_{i}")
+        poke = st.selectbox(
+            f"Team 1 - Pokémon {i+1}",
+            pokemon_df["Name"].tolist(),
+            index=int(pokemon_df[pokemon_df["Name"] == st.session_state.team1[i]].index[0]),
+            key=f"team1_poke_{i}"
+        )
         team1.append(poke)
+
     with cols[1]:
-        poke = st.selectbox(f"Team 2 - Pokémon {i+1}", pokemon_df["Name"].tolist(), key=f"team2_poke_{i}")
+        poke = st.selectbox(
+            f"Team 2 - Pokémon {i+1}",
+            pokemon_df["Name"].tolist(),
+            index=int(pokemon_df[pokemon_df["Name"] == st.session_state.team2[i]].index[0]),
+            key=f"team2_poke_{i}"
+        )
         team2.append(poke)
 
 # Prediction logic

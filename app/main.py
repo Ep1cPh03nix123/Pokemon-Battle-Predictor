@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from utils import load_pokemon_data, get_pokemon_stats, predict_winner
+from utils import load_pokemon_data, get_pokemon_stats, predict_winner, predict_team_battle
 
 st.set_page_config(page_title="Pokémon Battle Predictor", layout="wide")
 st.title("⚔️ Competitive Pokémon Battle Predictor")
@@ -44,7 +44,7 @@ stat_colors = {
     "Sp. Atk": "#4C9AFF", "Sp. Def": "#B266FF", "Speed": "#2ECC71"
 }
 
-# Pokémon selectors and stat display
+# Pokémon selectors and stat display (1v1)
 col1, col2 = st.columns(2)
 with col1:
     pokemon_1 = st.selectbox("Select Pokémon 1", filtered_df_1["Name"].tolist())
@@ -89,7 +89,7 @@ fig.update_layout(
 )
 st.plotly_chart(fig)
 
-# Prediction logic
+# Prediction logic (1v1)
 if st.button("⚔️ Predict Battle Outcome"):
     if pokemon_1 == pokemon_2:
         st.warning("Please choose two different Pokémon!")
@@ -120,3 +120,43 @@ if st.session_state.match_history:
     history_df.index = range(1, len(history_df) + 1)
     history_df.index.name = "Match #"
     st.dataframe(history_df)
+
+from utils import predict_team_battle  # Make sure this import is at the top
+
+# --- 🔥 Team vs. Team Battle UI Section ---
+st.markdown("---")
+st.header("🧪 Team Battle Predictor (6v6)")
+st.caption("Select up to 6 Pokémon per team. Duplicates allowed.")
+
+team1 = []
+team2 = []
+
+cols = st.columns(2)
+for i in range(6):
+    with cols[0]:
+        poke = st.selectbox(f"Team 1 - Pokémon {i+1}", pokemon_df["Name"].tolist(), key=f"team1_poke_{i}")
+        team1.append(poke)
+    with cols[1]:
+        poke = st.selectbox(f"Team 2 - Pokémon {i+1}", pokemon_df["Name"].tolist(), key=f"team2_poke_{i}")
+        team2.append(poke)
+
+# Prediction logic
+if st.button("🔍 Predict Team Battle Outcome"):
+    if not any(team1) or not any(team2):
+        st.warning("Please select at least one Pokémon for each team.")
+    else:
+        score1, score2, win1, win2 = predict_team_battle(pokemon_df, team1, team2)
+
+        st.success("🏆 Team Battle Prediction Complete!")
+        st.markdown(f"**Team 1 Score:** {score1}")
+        st.markdown(f"**Team 2 Score:** {score2}")
+        st.markdown("### Win Rates:")
+        st.markdown(f"- **Team 1:** {win1}%")
+        st.markdown(f"- **Team 2:** {win2}%")
+
+        if win1 > win2:
+            st.success("🥇 **Team 1 is more likely to win!**")
+        elif win2 > win1:
+            st.success("🥇 **Team 2 is more likely to win!**")
+        else:
+            st.info("🤝 It's a tie!")

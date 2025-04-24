@@ -62,3 +62,23 @@ def predict_winner(pokemon_df, name1, name2):
     proba = model.predict_proba(X)[0]
 
     return prediction, proba
+
+# NEW: Team Battle Prediction
+def predict_team_battle(pokemon_df, team1, team2):
+    team1_score = 0
+    team2_score = 0
+    total = 0
+
+    for p1 in team1:
+        for p2 in team2:
+            prediction, _ = predict_winner(pokemon_df, p1, p2)
+            if prediction == 1:
+                team1_score += 1
+            else:
+                team2_score += 1
+            total += 1
+
+    team1_win_rate = round((team1_score / total) * 100, 2)
+    team2_win_rate = round((team2_score / total) * 100, 2)
+
+    return team1_score, team2_score, team1_win_rate, team2_win_rate

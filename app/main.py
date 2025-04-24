@@ -21,12 +21,15 @@ selected_type_2 = st.sidebar.selectbox("Filter Pokémon 2 by type", ["All"] + ty
 # Match history session init
 if "match_history" not in st.session_state:
     st.session_state.match_history = []
+if "team_match_history" not in st.session_state:
+    st.session_state.team_match_history = []
 
 # Clear history option
-if st.session_state.match_history:
+if st.session_state.match_history or st.session_state.team_match_history:
     st.sidebar.markdown("---")
     if st.sidebar.button("🗑️ Clear History"):
         st.session_state.match_history.clear()
+        st.session_state.team_match_history.clear()
         st.sidebar.success("Match history cleared!")
 
 # Type filtering logic
@@ -97,45 +100,44 @@ if st.button("⚔️ Predict Battle Outcome"):
     else:
         prediction, proba = predict_winner(pokemon_df, pokemon_1, pokemon_2)
         winner = pokemon_1 if prediction == 1 else pokemon_2
-        win_diff = abs(round(proba[1] * 100, 2) - round(proba[0] * 100, 2))
+        win1 = round(proba[1] * 100, 2)
+        win2 = round(proba[0] * 100, 2)
+        win_diff = abs(win1 - win2)
 
         st.success(f"🏆 Predicted Winner: **{winner}**")
         st.write("### Win Probabilities:")
-        st.markdown(f"- **{pokemon_1}:** {round(proba[1] * 100, 2)}%")
-        st.markdown(f"- **{pokemon_2}:** {round(proba[0] * 100, 2)}%")
+        st.markdown(f"- **{pokemon_1}:** {win1}%")
+        st.markdown(f"- **{pokemon_2}:** {win2}%")
         st.caption(f"💡 *Model used: XGBoost with Type Advantage (TypeEff_Diff). Win gap: {win_diff}%*")
 
-        # Add to match history
+        # Add to match history with consistent column names
         st.session_state.match_history.append({
             "Pokémon 1": pokemon_1,
             "Pokémon 2": pokemon_2,
             "Predicted Winner": winner,
-            f"{pokemon_1} Win %": round(proba[1] * 100, 2),
-            f"{pokemon_2} Win %": round(proba[0] * 100, 2)
+            "Pokémon 1 Win %": win1,
+            "Pokémon 2 Win %": win2
         })
 
 # Display match history
 if st.session_state.match_history:
-    st.write("## 📋 Match History")
+    st.write("## 📋 Match History (1v1)")
     history_df = pd.DataFrame(st.session_state.match_history)
     history_df.index = range(1, len(history_df) + 1)
     history_df.index.name = "Match #"
     st.dataframe(history_df)
 
-from utils import predict_team_battle  # Make sure this import is at the top
-
 # --- 🔥 Team vs. Team Battle UI Section ---
+from utils import predict_team_battle
 st.markdown("---")
 st.header("🧪 Team Battle Predictor (6v6)")
 st.caption("Select up to 6 Pokémon per team. Duplicates allowed.")
 
-# Store team states in session
 if "team1" not in st.session_state:
     st.session_state.team1 = [pokemon_df["Name"].sample().values[0] for _ in range(6)]
 if "team2" not in st.session_state:
     st.session_state.team2 = [pokemon_df["Name"].sample().values[0] for _ in range(6)]
 
-# Randomize buttons
 col_random1, col_random2 = st.columns(2)
 with col_random1:
     if st.button("🎲 Randomize Team 1"):
@@ -144,7 +146,6 @@ with col_random2:
     if st.button("🎲 Randomize Team 2"):
         st.session_state.team2 = [pokemon_df["Name"].sample().values[0] for _ in range(6)]
 
-# Select boxes for each Pokémon in the teams
 team1 = []
 team2 = []
 cols = st.columns(2)
@@ -167,7 +168,6 @@ for i in range(6):
         )
         team2.append(poke)
 
-# Prediction logic
 if st.button("🔍 Predict Team Battle Outcome"):
     if not any(team1) or not any(team2):
         st.warning("Please select at least one Pokémon for each team.")
@@ -187,3 +187,19 @@ if st.button("🔍 Predict Team Battle Outcome"):
             st.success("🥇 **Team 2 is more likely to win!**")
         else:
             st.info("🤝 It's a tie!")
+
+        st.session_state.team_match_history.append({
+            "Team 1": ", ".join(team1),
+            "Team 2": ", ".join(team2),
+            "Team 1 Score": score1,
+            "Team 2 Score": score2,
+            "Team 1 Win %": win1,
+            "Team 2 Win %": win2
+        })
+
+if st.session_state.team_match_history:
+    st.write("## 📋 Match History (Team vs Team)")
+    team_df = pd.DataFrame(st.session_state.team_match_history)
+    team_df.index = range(1, len(team_df) + 1)
+    team_df.index.name = "Match #"
+    st.dataframe(team_df)

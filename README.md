@@ -1,7 +1,7 @@
 # Competitive Pokemon Battle Outcome Predictor
 
 ## Overview
-Welcome to the Competitive Pokemon Battle Outcome Predictor! 🏋️ This project aims to predict the outcomes of competitive Pokemon battles using machine learning models, offering both **1v1** and **Team vs Team (6v6)** battle prediction features.
+Welcome to the Competitive Pokemon Battle Outcome Predictor! This project aims to predict the outcomes of competitive Pokemon battles using machine learning models, offering both **1v1** and **Team vs Team (6v6)** battle prediction features.
 
 Built with:
 - **Python** (pandas, scikit-learn, XGBoost)

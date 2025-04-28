@@ -2,4 +2,6 @@ streamlit
 pandas
 scikit-learn
 xgboost
+plotly
 matplotlib
+joblib
